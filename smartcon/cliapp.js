@@ -35,7 +35,8 @@ var inquirer = require('inquirer');
 var mainuioptions = "what do you want to do \n\
 1.\tCreate a new reference request \n\
 2.\tAttach a reference to an existing request \n\
-3.\tVerify a reference\n";
+3.\tVerify a reference\n\
+4.\tSearch for my TXs (very slow)";
 
 //prompt user
 function mainui () {
@@ -143,6 +144,27 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
                     console.log("Fufiled by: " + refo.organisation());
                     console.log("Reference: " + refo.reference());
                 }
+            });
+            break;
+        case '4':
+            //based upon https://forum.ethereum.org/discussion/2744/eth-getblockbyhash-x-true-shows-all-transactions-or-your-transactions
+            inquirer.prompt([{type:'input',name:'address',message:'Account to search for'}]).then( (answer) => {
+                var dStart = new Date().getTime();
+                for(var i = 0; i < web3.eth.blockNumber; i++) {
+                    if (web3.eth.getBlockTransactionCount(i)) {
+                        var block = web3.eth.getBlock(i, true);
+                        for (var j = 0; j < block.transactions.length; j++) {
+                            if(block.transactions[j].from === answer.address) {
+                                console.log(block.transactions[j]);
+                            }
+                        }
+                    }
+                    if(i % 100 == 0) {
+                        console.log(i);
+                    }
+                }
+                var dEnd = new Date().getTime();
+                console.log(dEnd - dStart);
             });
             break;
         }
