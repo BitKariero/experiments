@@ -21,6 +21,17 @@ var refsc = fs.readFileSync('ref1.sol', 'utf8');
 var refcompiled = web3.eth.compile.solidity(refsc);
 var refabi = web3.eth.contract(refcompiled.bkref.info.abiDefinition);
 
+//mainbk
+var mainBKsc = fs.readFileSync('main.sol', 'utf8');
+
+//compile and get ABI
+var mainBKcompiled = web3.eth.compile.solidity(mainBKsc);
+var mainBKabi = web3.eth.contract(mainBKcompiled.mainBK.info.abiDefinition);
+
+//address of mainBK on testnet
+var mainBKaddr = '0x20ed2f65451e2d69152d440da9aca0ea4f1539ee';
+var mainBK = web3.eth.contract(mainBKabi.abi).at(mainBKaddr);
+
 
 //run CLI
 //list wallets
@@ -36,7 +47,8 @@ var mainuioptions = "what do you want to do \n\
 1.\tCreate a new reference request \n\
 2.\tAttach a reference to an existing request \n\
 3.\tVerify a reference\n\
-4.\tSearch for my TXs (very slow)";
+4.\tSearch for my TXs through blockchain (very slow)\n\
+5.\tSearch mainBK logs";
 
 //prompt user
 function mainui () {
@@ -79,6 +91,7 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
                             console.log("tx sent, waiting to be mined");
                         } else {
                             console.log("mined at " + contract.address);
+                            mainBK.addRequest(answerb.to, contract.address, {from: answerb.from});
                         }
                     }
                     
@@ -165,6 +178,17 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
                 }
                 var dEnd = new Date().getTime();
                 console.log(dEnd - dStart);
+            });
+            break;
+        case '5':
+            inquirer.prompt([{type:'input',name:'address',message:'Sent from'}]).then( (answer) => {
+
+                var addEvent = mainBK.evAddRequest({from: answer.address}, {fromBlock:0, toBlock: 'latest'});
+
+                addEvent.watch(function(error, log) {
+                    console.log(log);
+                });
+                    
             });
             break;
         }
