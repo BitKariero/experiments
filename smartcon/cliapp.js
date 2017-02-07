@@ -194,6 +194,10 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
               message: 'Password for wallet'
           }, {
               type: 'input',
+              name: 'identity',
+              message: 'Your Identity Contract '
+          }, {
+              type: 'input',
               name: 'provider',
               message: 'Account of provider to remove '
           }
@@ -208,8 +212,12 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
         else
         {
           var refo = web3.eth.contract(identity_abi.abi).at(answerb.identity);
-          refo.removeProvider(answerb.provider, {from: answerb.owner });
+          refo.removeProvider(answerb.provider, {from: answerb.owner});
+          var providersSize = refo.getProvidersCount();
+          console.log(providersSize);
           console.log("You have successfully removed " + answerb.provider + " from providers.");
+          providersSize = refo.getProvidersCount();
+          console.log(providersSize);
         }
       });
       break;

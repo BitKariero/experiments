@@ -15,7 +15,7 @@ contract bkContract
 
 contract bkRevocable is bkContract
 {
-    bool public isRevoked = false;
+    bool isRevoked = false;
     function bkRevocable(address _y) bkContract(_y)
     {
 
@@ -85,6 +85,11 @@ contract bkIdentity
     address[] public providers;
     address[] public vouches;
 
+    function getProvidersCount() public constant returns(uint)
+    {
+      return providers.length;
+    }
+
     function bkIdentity(address _owner, string _ownerName, string _ownerDOB)
     {
         owner = _owner;
@@ -105,30 +110,20 @@ contract bkIdentity
 
     function removeProvider(address _provider) returns (bool)
     {
-      bool removedProvider = false;
+      bool isRemoved = false;
       if(msg.sender == owner)
       {
-        for(uint i = 0; i < providers.length; i++)      // O(N) search
+        bool removedProvider = false;
+        for(uint i = 0; i < providers.length; i++)
         {
           if(providers[i] == _provider)
           {
-
-            if(i != providers.length - 1)
-            {
-              delete providers[i];
-              providers[i] = providers[providers.length - 1];
-              providers.length--;
-            }
-            else
-            {
-              delete providers[providers.length - 1];
-              providers.length--;
-            }
-            removedProvider = true;
+            delete providers[i];
+            isRemoved = true;
           }
         }
-        return removedProvider;
       }
+      return isRemoved;
     }
 
     function vouch() returns (bool)
