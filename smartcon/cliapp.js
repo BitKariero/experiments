@@ -32,14 +32,16 @@ for (account in web3.eth.accounts) {
 var inquirer = require('inquirer');
 
 var mainuioptions = "what do you want to do \n\
-1.\tCreate new Identity \n\
-2.\tRetrieve details of an identity\n\
-3.\tAdd a provider to your Identity\n\
-4.\tAdd a voucher to your Identity\n\
-5.\tRemove a provider from your Identity\n\
-6.\tUnvouch a particular identity\n\
-7.\tMembership Contract\n\
-8.\tReference Contract";
+1. \tCreate new Identity \n\
+2. \tRetrieve details of an identity\n\
+3. \tAdd a provider to your Identity\n\
+4. \tVouch for an Identity\n\
+5. \tRemove a provider from your Identity\n\
+6. \tUnvouch a particular identity\n\
+7. \tMembership Contract\n\
+8. \tReference Contract\n\
+9. \tList all the Providers for an Identity\n\
+10.\tList all the Vouchers for an Identity";
 
 function mainui ()
 {
@@ -146,7 +148,9 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
         {
           var refo = web3.eth.contract(identity_abi.abi).at(answerb.identity);
           if(refo.owner() != answerb.owner) { console.log("Account did not match identity."); }
-          else { refo.addProvider(answerb.provider, {from: answerb.owner }  );  console.log("Identity successfully matched account." + answerb.provider + " has been sucessfully added as a provider."); }
+          else { refo.addProvider(answerb.provider, {from: answerb.owner }  );
+                 console.log("Identity successfully matched account." + answerb.provider + " has been sucessfully added as a provider.");
+               }
         }
 
       });
@@ -164,7 +168,7 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
           }, {
               type: 'input',
               name: 'identity',
-              message: 'Address of identity '
+              message: 'Address of identity to vouch for'
           }
       ];
 
@@ -213,11 +217,7 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
         {
           var refo = web3.eth.contract(identity_abi.abi).at(answerb.identity);
           refo.removeProvider(answerb.provider, {from: answerb.owner});
-          var providersSize = refo.getProvidersCount();
-          console.log(providersSize);
           console.log("You have successfully removed " + answerb.provider + " from providers.");
-          providersSize = refo.getProvidersCount();
-          console.log(providersSize);
         }
       });
       break;
@@ -418,127 +418,206 @@ inquirer.prompt([{ type: 'input', name: 'main', message: mainuioptions}]).then( 
         break;
       case '8':
 
-      var createquestions = "\n\
-      1.\tCreate a new Reference Request \n\
-      2.\tAttach a Reference to an existing request \n\
-      3.\tVerify a Reference"
+        var createquestions = "\n\
+        1.\tCreate a new Reference Request \n\
+        2.\tAttach a Reference to an existing request \n\
+        3.\tVerify a Reference"
 
-      inquirer.prompt([{ type: 'input', name: 'main', message: createquestions}]).then( (answerc) =>
-      {
-        switch(answerc.main)
+        inquirer.prompt([{ type: 'input', name: 'main', message: createquestions}]).then( (answerc) =>
         {
-          case '1':
-          var createquestions = [
-              {
-                  type: 'input',
-                  name: 'from',
-                  message: 'Account to send from'
-              }, {
-                  type: 'input',
-                  name: 'accountpassword',
-                  message: 'Password for wallet'
-              }, {
-                  type: 'input',
-                  name: 'to',
-                  message: 'Account to send to'
-              }
-          ];
-
-          inquirer.prompt(createquestions).then( (answerd) =>
+          switch(answerc.main)
           {
-            //unlock account
-              if(!web3.personal.unlockAccount(answerd.from, answerd.accountpassword))
-              {
-                  console.log("Invalid Password");
-              }
-              else {
-                  console.log('Creating tx');
-                  //create smart con
-                  reference_abi.new(answerd.to, {from: answerd.from, data: refcompiled.bkReference.code, gas: 700000}, (e, contract) => {
-                  if(e) {
-                      console.log(e);
-                  }
-                  else
-                  {
-                      if(!contract.address)
-                      {
-                          console.log("Reference Contract sent, waiting to be mined");
-                      } else
-                      {
-                          console.log("Reference Contract created at " + contract.address);
+            case '1':
+            var createquestions = [
+                {
+                    type: 'input',
+                    name: 'from',
+                    message: 'Account to send from'
+                }, {
+                    type: 'input',
+                    name: 'accountpassword',
+                    message: 'Password for wallet'
+                }, {
+                    type: 'input',
+                    name: 'to',
+                    message: 'Account to send to'
+                }
+            ];
 
-                      }
-                  }
-                });
-
-              }
-          //  mainui();
-          });
-          break;
-          case '2':
-          //attach ref
-           var createquestions = [
-              {
-                  type: 'input',
-                  name: 'from',
-                  message: 'Account to send from'
-              }, {
-                  type: 'input',
-                  name: 'accountpassword',
-                  message: 'Password for wallet'
-              }, {
-                  type: 'input',
-                  name: 'address',
-                  message: 'Address of Membership contract'
-              }, {
-                  type: 'input',
-                  name: 'reference',
-                  message: 'Reference Content to attach '
-              }
-          ];
-
-          inquirer.prompt(createquestions).then( (answerd) => {
-
+            inquirer.prompt(createquestions).then( (answerd) =>
+            {
               //unlock account
-              if(!web3.personal.unlockAccount(answerd.from, answerd.accountpassword))
-              {
-                  console.log("Invalid Password");
-              } else {
-                  //check if there is contract at address
-                  if(web3.eth.getCode(answerd.address).length === 2) {
-                      console.log("Invalid address");
-                  } else {
+                if(!web3.personal.unlockAccount(answerd.from, answerd.accountpassword))
+                {
+                    console.log("Invalid Password");
+                }
+                else {
+                    console.log('Creating tx');
+                    //create smart con
+                    reference_abi.new(answerd.to, {from: answerd.from, data: refcompiled.bkReference.code, gas: 700000}, (e, contract) => {
+                    if(e) {
+                        console.log(e);
+                    }
+                    else
+                    {
+                        if(!contract.address)
+                        {
+                            console.log("Reference Contract sent, waiting to be mined");
+                        } else
+                        {
+                            console.log("Reference Contract created at " + contract.address);
 
-                      var refo = web3.eth.contract(reference_abi.abi).at(answerd.address);
+                        }
+                    }
+                  });
 
-                      if(refo.organisation() != answerd.from) {
-                          console.log("Contract is for different account: " + refo.organisation());
-                      }
-                      else
-                      {
-                          //add ref
-                          refo.addReference(answerd.reference, {from: answerd.from});
-                          console.log("Attached Reference content");
-                      }
-                  }
-              }
-          });
-          break;
-          case '3':
-          inquirer.prompt([{type:'input',name:'address',message:'Address of Reference Contract '}]).then((answer) => {
-              if(web3.eth.getCode(answer.address).length === 2) {
-                  console.log("Invalid address)");
-              } else {
-                  var refo = web3.eth.contract(reference_abi.abi).at(answer.address);
-                  console.log("Requested by: " + refo.owner());
-                  console.log("Fufiled by: " + refo.organisation());
-                  console.log("Reference: " + refo.reference());
-              }
-          });
+                }
+            //  mainui();
+            });
+            break;
+            case '2':
+            //attach ref
+             var createquestions = [
+                {
+                    type: 'input',
+                    name: 'from',
+                    message: 'Account to send from'
+                }, {
+                    type: 'input',
+                    name: 'accountpassword',
+                    message: 'Password for wallet'
+                }, {
+                    type: 'input',
+                    name: 'address',
+                    message: 'Address of Membership contract'
+                }, {
+                    type: 'input',
+                    name: 'reference',
+                    message: 'Reference Content to attach '
+                }
+            ];
+
+            inquirer.prompt(createquestions).then( (answerd) => {
+
+                //unlock account
+                if(!web3.personal.unlockAccount(answerd.from, answerd.accountpassword))
+                {
+                    console.log("Invalid Password");
+                } else {
+                    //check if there is contract at address
+                    if(web3.eth.getCode(answerd.address).length === 2) {
+                        console.log("Invalid address");
+                    } else {
+
+                        var refo = web3.eth.contract(reference_abi.abi).at(answerd.address);
+
+                        if(refo.organisation() != answerd.from) {
+                            console.log("Contract is for different account: " + refo.organisation());
+                        }
+                        else
+                        {
+                            //add ref
+                            refo.addReference(answerd.reference, {from: answerd.from});
+                            console.log("Attached Reference content");
+                        }
+                    }
+                }
+            });
+            break;
+            case '3':
+            inquirer.prompt([{type:'input',name:'address',message:'Address of Reference Contract '}]).then((answer) => {
+                if(web3.eth.getCode(answer.address).length === 2) {
+                    console.log("Invalid address)");
+                } else {
+                    var refo = web3.eth.contract(reference_abi.abi).at(answer.address);
+                    console.log("Requested by: " + refo.owner());
+                    console.log("Fufiled by: " + refo.organisation());
+                    console.log("Reference: " + refo.reference());
+                }
+            });
           break;
         }
       });
+      break;
+      case '9':
+      var createquestions =
+      [
+          {
+              type: 'input',
+              name: 'owner',
+              message: 'Your account '
+          }, {
+              type: 'input',
+              name: 'accountpassword',
+              message: 'Password for wallet'
+          }, {
+              type: 'input',
+              name: 'identity',
+              message: 'Address of identity '
+          }
+      ];
 
+      inquirer.prompt(createquestions).then( (answerb) =>
+      {
+        if(!web3.personal.unlockAccount(answerb.owner, answerb.accountpassword))
+        {
+            console.log("Invalid Password");
+        }
+        else
+        {
+          var refo = web3.eth.contract(identity_abi.abi).at(answerb.identity);
+          if(refo.owner() != answerb.owner) { console.log("Account did not match identity."); }
+          else {
+                  var size = refo.getProvidersCount();
+                  for(i = 0; i < size; i++)
+                  {
+                    var addressProvider =  refo.providers(i);
+                    console.log(addressProvider);
+                  }
+               }
+        }
+
+      });
+      break;
+      case '10':
+      var createquestions =
+      [
+          {
+              type: 'input',
+              name: 'owner',
+              message: 'Your account '
+          }, {
+              type: 'input',
+              name: 'accountpassword',
+              message: 'Password for wallet'
+          }, {
+              type: 'input',
+              name: 'identity',
+              message: 'Address of identity '
+          }
+      ];
+
+      inquirer.prompt(createquestions).then( (answerb) =>
+      {
+        if(!web3.personal.unlockAccount(answerb.owner, answerb.accountpassword))
+        {
+            console.log("Invalid Password");
+        }
+        else
+        {
+          var refo = web3.eth.contract(identity_abi.abi).at(answerb.identity);
+          if(refo.owner() != answerb.owner) { console.log("Account did not match identity."); }
+          else {
+                  var size = refo.getVouchesCount();
+                  for(i = 0; i < size; i++)
+                  {
+                    var addressVouch =  refo.vouches(i);
+                    console.log(addressVouch);
+                  }
+               }
+        }
+
+      });
       break;
     }
   });

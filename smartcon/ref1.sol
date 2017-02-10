@@ -90,6 +90,12 @@ contract bkIdentity
       return providers.length;
     }
 
+    function getVouchesCount() public constant returns(uint)
+    {
+      return vouches.length;
+    }
+
+
     function bkIdentity(address _owner, string _ownerName, string _ownerDOB)
     {
         owner = _owner;
@@ -102,7 +108,8 @@ contract bkIdentity
       bool added = false;
       if(msg.sender == owner)
       {
-        providers.push(_provider);
+        providers.length++;
+        providers[providers.length - 1] = _provider;
         added = true;
       }
       return added;
@@ -128,12 +135,12 @@ contract bkIdentity
 
     function vouch() returns (bool)
     {
-      address voucher = msg.sender;
+      address _voucher = msg.sender;
       bool canVouch = false;
 
       for(uint i = 0; i < providers.length; i++)      // O(N) search
       {
-        if(providers[i] == voucher)
+        if(providers[i] == _voucher)
         {
           canVouch = true;
         }
@@ -141,7 +148,8 @@ contract bkIdentity
 
       if(canVouch)
       {
-        vouches.push(voucher);
+        vouches.length++;
+        vouches[vouches.length - 1] = _voucher;
       }
       return canVouch;
     }
